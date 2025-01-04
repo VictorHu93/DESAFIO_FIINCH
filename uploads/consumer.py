@@ -1,46 +1,57 @@
-import pika
+from django.conf import settings
+from .rabbitmq import RabbitMQClient
+from .models import ProcessosPDF, ProcessInfo
+from utils.extract_pdf import extract_pdf_data
 import json
-import requests
 
-# Configurações
-RABBITMQ_HOST = 'localhost'
-QUEUE_NAME = 'pdf_queue'
-API_URL = 'http://127.0.0.1:8000/uploads/api/extract/'
+class PdfConsumer:
+    @staticmethod
+    def process_message(channel, method, properties, body):
+        """
+        Processa uma mensagem recebida da fila.
+        """
+        try:
+            message = json.loads(body)
+            pdf_id = message.get("id")
 
-def callback(ch, method, properties, body):
-    """Callback que processa cada mensagem da fila."""
-    # Decodifica a mensagem JSON
-    message = json.loads(body)
-    file_path = message.get("file_path")
+            # Buscar o PDF no banco
+            pdf_instance = ProcessosPDF.objects.get(id=pdf_id)
+            pdf_blob = pdf_instance.arquivo
 
-    print(f"Processando arquivo: {file_path}")
+            # Extrair dados do PDF
+            extracted_data = extract_pdf_data(pdf_blob)
 
-    try:
-        # Lê o arquivo e envia para a API
-        with open(file_path, 'rb') as file:
-            response = requests.post(API_URL, files={'file': file})
-            if response.status_code == 200:
-                print(f"Sucesso: {response.json()}")
-            else:
-                print(f"Erro: {response.status_code}, {response.text}")
+            # Persistir os dados extraídos
+            ProcessInfo.objects.create(
+                numero_processo=extracted_data["processo_numero"],
+                status=extracted_data["status"],
+                autor_nome=extracted_data["autor_nome"],
+                autor_documento=extracted_data["autor_documento"],
+                reus=[r["nome"] for r in extracted_data["reus"]],
+                reus_documentos=[r["documento"] for r in extracted_data["reus"]],
+                pdf=pdf_instance,
+            )
+            channel.basic_ack(delivery_tag=method.delivery_tag)
 
-        # Confirma a mensagem como processada
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-    except Exception as e:
-        print(f"Erro ao processar: {e}")
-        # Marca como não processada sem reencaminhamento
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        except Exception as e:
+            print(f"Erro ao processar mensagem: {e}")
+            channel.basic_nack(delivery_tag=method.delivery_tag)
 
-def start_consumer():
-    """Inicia o consumidor."""
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
-    channel = connection.channel()
-    channel.queue_declare(queue=QUEUE_NAME, durable=True)
-    channel.basic_qos(prefetch_count=1)  # Processa uma mensagem por vez
-    channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
+    @staticmethod
+    def start_consuming():
+        """
+        Inicia o consumidor para processar mensagens da fila.
+        """
+        connection = RabbitMQClient.get_connection()
+        channel = connection.channel()
+        queue_name = settings.QUEUE_NAME 
 
-    print("Aguardando mensagens. Para sair, pressione CTRL+C")
-    channel.start_consuming()
+        channel.queue_declare(queue=queue_name, durable=True)
 
-if __name__ == "__main__":
-    start_consumer()
+        channel.basic_consume(
+            queue=queue_name,
+            on_message_callback=PdfConsumer.process_message
+        )
+        print(f"Consumidor iniciado. Aguardando mensagens na fila...")
+        channel.start_consuming()
+

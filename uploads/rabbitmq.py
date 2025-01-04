@@ -1,31 +1,44 @@
+from django.conf import settings
 import pika
 import json
+import os
 
-# Configuração do RabbitMQ
-RABBITMQ_HOST = 'localhost'
-QUEUE_NAME = 'pdf_queue'
+class RabbitMQClient:
+    @staticmethod
+    def get_connection():
+        """
+        Estabelece conexão com RabbitMQ.
+        """
+        rabbitmq_host = settings.RABBITMQ_HOST
+        return pika.BlockingConnection(pika.ConnectionParameters(host=rabbitmq_host))
 
-def get_rabbitmq_connection():
-    """Estabelece a conexão com o RabbitMQ."""
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
-    channel = connection.channel()
-    # Declara a fila caso ela não exista
-    channel.queue_declare(queue=QUEUE_NAME, durable=True)
-    return connection, channel
+    @staticmethod
+    def send_to_queue(message):
+        """
+        Envia uma mensagem à fila RabbitMQ.
+        """
+        queue_name = settings.QUEUE_NAME
+        connection = RabbitMQClient.get_connection()
+        channel = connection.channel()
+        channel.queue_declare(queue=queue_name, durable=True)
 
-def send_to_queue(message):
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
-    channel = connection.channel()
+        channel.basic_publish(
+            exchange='',
+            routing_key=queue_name,
+            body=json.dumps(message),
+            properties=pika.BasicProperties(delivery_mode=2)  # Tornar mensagem persistente
+        )
+        connection.close()
 
-    # Garantir que a fila existe
-    channel.queue_declare(queue=QUEUE_NAME, durable=True)
-
-    # Enviar mensagem
-    channel.basic_publish(
-        exchange='',
-        routing_key=QUEUE_NAME,
-        body=json.dumps(message),
-        properties=pika.BasicProperties(delivery_mode=2)  # Tornar mensagem persistente
-    )
-    print(f"Mensagem enviada para a fila: {message}")
-    connection.close()
+    @staticmethod
+    def get_message_count():
+        """
+        Obtém a contagem de mensagens restantes na fila RabbitMQ.
+        """
+        queue_name = settings.QUEUE_NAME
+        connection = RabbitMQClient.get_connection()
+        channel = connection.channel()
+        queue_status = channel.queue_declare(queue=queue_name, passive=True)
+        message_count = queue_status.method.message_count
+        connection.close()
+        return message_count
