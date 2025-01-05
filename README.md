@@ -74,15 +74,15 @@ docker-compose run app python manage.py migrate
 ```
 
 ### **5. Acessar a Interface**
-- Interface de Upload: [http://localhost:8000/uploads/]
-- Interface do RabbitMQ: [http://localhost:15672/]
+- Interface de Upload: [http://localhost:8000/uploads/](http://localhost:8000/uploads/)
+- Interface do RabbitMQ: [http://localhost:15672/](http://localhost:15672/)
 
 ---
 
 ## **Como Usar**
 
 ### **Upload de PDFs**
-1. Acesse a página de upload: [http://localhost:8000/uploads/]
+1. Acesse a página de upload: [http://localhost:8000/uploads/](http://localhost:8000/uploads/)
 2. Selecione de 1 a 5 arquivos PDF.
 3. Clique em "Enviar".
 
@@ -92,7 +92,7 @@ Os arquivos serão processados e enviados para a fila RabbitMQ. Os dados extraí
 Após o upload dos PDFs, uma planilha será gerada automaticamente no diretório `data/`, com os dados extraídos dos processos enviados no dia.
 
 ### **API REST**
-- **Listar Dados Extraídos**: [http://localhost:8000/uploads/api/data/]
+- **Listar Dados Extraídos**: [http://localhost:8000/uploads/api/data/](http://localhost:8000/uploads/api/data/)
 - **Contagem de Mensagens na Fila**: Incluído na resposta do endpoint acima.
 
 ---
