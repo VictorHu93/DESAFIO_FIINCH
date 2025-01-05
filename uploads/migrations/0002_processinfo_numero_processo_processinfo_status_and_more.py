@@ -6,38 +6,54 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('uploads', '0001_initial'),
+        ("uploads", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='processinfo',
-            name='numero_processo',
-            field=models.CharField(blank=True, max_length=50, null=True, verbose_name='Número do Processo'),
+            model_name="processinfo",
+            name="numero_processo",
+            field=models.CharField(
+                blank=True, max_length=50, null=True, verbose_name="Número do Processo"
+            ),
         ),
         migrations.AddField(
-            model_name='processinfo',
-            name='status',
-            field=models.CharField(choices=[('Em Andamento', 'Em Andamento'), ('Finalizado', 'Finalizado')], default='Em Andamento', max_length=30, verbose_name='Status do Processo'),
+            model_name="processinfo",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("Em Andamento", "Em Andamento"),
+                    ("Finalizado", "Finalizado"),
+                ],
+                default="Em Andamento",
+                max_length=30,
+                verbose_name="Status do Processo",
+            ),
         ),
         migrations.AlterField(
-            model_name='processinfo',
-            name='autor_documento',
-            field=models.CharField(blank=True, max_length=20, null=True, verbose_name='Documento do Autor'),
+            model_name="processinfo",
+            name="autor_documento",
+            field=models.CharField(
+                blank=True, max_length=20, null=True, verbose_name="Documento do Autor"
+            ),
         ),
         migrations.AlterField(
-            model_name='processinfo',
-            name='autor_nome',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Nome do Autor'),
+            model_name="processinfo",
+            name="autor_nome",
+            field=models.CharField(
+                blank=True, max_length=255, null=True, verbose_name="Nome do Autor"
+            ),
         ),
         migrations.AlterField(
-            model_name='processinfo',
-            name='reus',
-            field=models.JSONField(blank=True, null=True, verbose_name='Réus (Nomes)'),
+            model_name="processinfo",
+            name="reus",
+            field=models.JSONField(blank=True, null=True, verbose_name="Réus (Nomes)"),
         ),
         migrations.AlterField(
-            model_name='processinfo',
-            name='reus_documentos',
-            field=models.JSONField(blank=True, null=True, verbose_name='Réus (Documentos)'),
+            model_name="processinfo",
+            name="reus_documentos",
+            field=models.JSONField(
+                blank=True, null=True, verbose_name="Réus (Documentos)"
+            ),
         ),
     ]

@@ -14,10 +14,10 @@
             {% csrf_token %}
             <div class="mb-3">
                 <label for="arquivo" class="form-label">Selecione de 1 a 5 PDFs:</label>
-                <input class="form-control" type="file" name="arquivo" id="arquivo" multiple>
-                <small class="text-muted">Pode selecionar até 5 arquivos.</small>
+                <input class="form-control" type="file" name="arquivo" id="arquivo" multiple accept=".pdf">
+                <small class="text-muted">Pode selecionar até 5 arquivos. Apenas PDFs são permitidos.</small>
             </div>
-            <button type="submit" class="btn btn-primary">Enviar</button>
+            <button type="submit" class="btn btn-primary" id="uploadButton">Enviar</button>
         </form>
         <div class="mt-3" id="messages"></div>
     </div>
@@ -26,16 +26,33 @@
         $(document).ready(function () {
             $("#uploadForm").submit(function (event) {
                 event.preventDefault(); // Impede o reload da página
+                
+                const files = $("#arquivo")[0].files;
+                if (files.length === 0) {
+                    $("#messages").html(`<div class="alert alert-danger">Por favor, selecione pelo menos um arquivo.</div>`);
+                    return;
+                }
+
+                if (files.length > 5) {
+                    $("#messages").html(`<div class="alert alert-danger">Você só pode enviar até 5 arquivos por vez.</div>`);
+                    return;
+                }
+
+                // Atualizar botão para indicar processamento
+                const uploadButton = $("#uploadButton");
+                uploadButton.prop("disabled", true).text("Enviando...");
 
                 const formData = new FormData(this);
 
                 $.ajax({
-                    url: "{% url 'upload_pdfs' %}",  // Substitua pela URL correta
+                    url: "{% url 'upload_pdfs' %}",
                     type: "POST",
                     data: formData,
                     processData: false,
                     contentType: false,
                     success: function (response) {
+                        uploadButton.prop("disabled", false).text("Enviar");
+
                         if (response.success) {
                             $("#messages").html(`<div class="alert alert-success">${response.message}</div>`);
 
@@ -47,6 +64,7 @@
                         }
                     },
                     error: function () {
+                        uploadButton.prop("disabled", false).text("Enviar");
                         $("#messages").html(`<div class="alert alert-danger">Erro no envio dos arquivos.</div>`);
                     }
                 });

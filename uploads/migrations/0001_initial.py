@@ -8,29 +8,54 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='ProcessosPDF',
+            name="ProcessosPDF",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(max_length=255)),
-                ('arquivo', models.BinaryField()),
-                ('upload_date', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(max_length=255)),
+                ("arquivo", models.BinaryField()),
+                ("upload_date", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='ProcessInfo',
+            name="ProcessInfo",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('autor_nome', models.CharField(blank=True, max_length=255, null=True)),
-                ('autor_documento', models.CharField(blank=True, max_length=20, null=True)),
-                ('reus', models.JSONField(blank=True, null=True)),
-                ('reus_documentos', models.JSONField(blank=True, null=True)),
-                ('criado_em', models.DateTimeField(auto_now_add=True)),
-                ('pdf', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='processos_info', to='uploads.processospdf')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("autor_nome", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "autor_documento",
+                    models.CharField(blank=True, max_length=20, null=True),
+                ),
+                ("reus", models.JSONField(blank=True, null=True)),
+                ("reus_documentos", models.JSONField(blank=True, null=True)),
+                ("criado_em", models.DateTimeField(auto_now_add=True)),
+                (
+                    "pdf",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="processos_info",
+                        to="uploads.processospdf",
+                    ),
+                ),
             ],
         ),
     ]
